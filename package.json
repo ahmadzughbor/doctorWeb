@@ -1,0 +1,42 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "lint": "eslint --ext .js,ts,vue --ignore-path .gitignore .",
+        "lint:fix": "lint --fix"
+    },
+    "devDependencies": {
+        "@headlessui/vue": "^1.7.13",
+        "@iconify-json/fa6-solid": "^1.1.13",
+        "@iconify-json/heroicons": "^1.1.10",
+        "@iconify-json/material-symbols": "^1.1.42",
+        "@iconify-json/mdi": "^1.1.52",
+        "@iconify-json/svg-spinners": "^1.1.1",
+        "@innocenzi/eslint-config": "^0.19.1",
+        "@tailwindcss/forms": "^0.5.3",
+        "@tailwindcss/typography": "^0.5.9",
+        "@types/node": "^18.16.7",
+        "@vue/runtime-core": "^3.2.47",
+        "@vueuse/components": "^9.13.0",
+        "@vueuse/core": "^9.13.0",
+        "@vueuse/head": "^1.1.26",
+        "autoprefixer": "^10.4.14",
+        "axios": "^1.4.0",
+        "eslint": "^8.40.0",
+        "eslint-plugin-tailwindcss": "^3.11.0",
+        "hybridly": "0.1.0",
+        "postcss": "^8.4.23",
+        "tailwindcss": "^3.3.2",
+        "typescript": "^5.0.4",
+        "unplugin-icons": "^0.16.1",
+        "vite": "^4.3.5",
+        "vue": "^3.2.47"
+    },
+    "postcss": {
+        "plugins": {
+            "autoprefixer": {},
+            "tailwindcss": {}
+        }
+    }
+}

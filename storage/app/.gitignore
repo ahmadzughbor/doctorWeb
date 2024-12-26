@@ -1,0 +1,5 @@
+*
+!public/
+!/dev/
+!/dev/*
+!.gitignore
