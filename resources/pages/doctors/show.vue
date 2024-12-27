@@ -20,7 +20,7 @@ const handleBooking = () => {
           <div class="flex items-start justify-between">
             <div>
               <h1 class="text-3xl font-bold text-gray">
-                Dr. {{ doctor.user.name }}
+                {{ doctor.user.name }}
               </h1>
               <p class="mt-2 text-lg text-gray-light">
                 {{ doctor.speciality }}

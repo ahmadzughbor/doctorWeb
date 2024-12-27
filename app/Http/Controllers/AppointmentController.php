@@ -38,6 +38,11 @@ class AppointmentController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Appointment store called', [
+            'request' => $request->all(),
+            'method' => $request->method()
+        ]);
+
         $validated = $request->validate([
             'doctor_id' => 'required|exists:doctors,id',
             'date' => 'required|date|after:today',
@@ -54,8 +59,24 @@ class AppointmentController extends Controller
                 'status' => 'scheduled',
             ]);
 
-            return back()->with('success', 'Appointment booked successfully');
+            // Return Hybridly response
+            return hybridly('appointments.index', [
+                'appointments' => auth()->user()->patient->appointments()->with('doctor.user')->get(),
+                'available_doctors' => Doctor::with('user')->get(),
+                'is_doctor' => false,
+                'auth' => [
+                    'user' => auth()->user()
+                ],
+                'flash' => [
+                    'success' => 'Appointment booked successfully'
+                ]
+            ]);
         } catch (\Exception $e) {
+            \Log::error('Appointment creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return back()->withErrors(['error' => 'Failed to book appointment: ' . $e->getMessage()]);
         }
     }

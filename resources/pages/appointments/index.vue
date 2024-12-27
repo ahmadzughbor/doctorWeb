@@ -54,7 +54,7 @@ const handleBooking = () => {
           <div class="flex items-start justify-between">
             <div>
               <h3 class="font-medium text-gray">
-                Dr. {{ appointment.doctor.user.name }}
+                {{ appointment.doctor.user.name }}
               </h3>
               <p class="mt-1 text-sm text-gray-light">
                 {{ appointment.doctor.speciality }}

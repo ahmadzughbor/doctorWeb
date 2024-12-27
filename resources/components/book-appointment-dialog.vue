@@ -17,62 +17,40 @@ const props = defineProps<{
   }
 }>()
 
-// Initialize form with default values
-const form = useForm(() => ({
-  doctor_id: props.doctor?.id?.toString() || '',
-  date: '',
-  time: '',
-}))
-
-// Watch for doctor changes after form is initialized
-watch(() => props.doctor, (newDoctor) => {
-  if (newDoctor && form.fields) {
-    form.reset({
-      doctor_id: newDoctor.id.toString(),
-      date: form.fields.date,
-      time: form.fields.time
-    })
-  }
-}, { immediate: false })
-
 const doctors = useProperty('available_doctors')
 const errorMessage = ref('')
 
-const submit = async () => {
-  errorMessage.value = ''
-  
-  try {
-    // Validate form
-    if (!form.fields.doctor_id) {
-      errorMessage.value = 'Please select a doctor'
-      return
+// Initialize form using the same pattern as register-dialog
+const form = useForm({
+  method: 'POST',
+  url: route('appointments.store'),
+  preserveScroll: true,
+  fields: {
+    doctor_id: props.doctor?.id?.toString() || '',
+    date: '',
+    time: ''
+  },
+  hooks: {
+    success() {
+      emit('close')
+    },
+    error(errors) {
+      console.error('Validation errors:', errors)
+      if (typeof errors === 'object' && errors !== null) {
+        errorMessage.value = Object.values(errors)[0] as string
+      } else {
+        errorMessage.value = 'An error occurred while booking the appointment'
+      }
     }
-    if (!form.fields.date) {
-      errorMessage.value = 'Please select a date'
-      return
-    }
-    if (!form.fields.time) {
-      errorMessage.value = 'Please select a time'
-      return
-    }
-
-    // Submit form
-    await form.submit(route('appointments.store'))
-    
-    // Show success message
-    console.log('Appointment booked successfully')
-    
-    // Close dialog and reset form
-    emit('close')
-    form.reset()
-    
-    // Refresh page to show new appointment
-    window.location.reload()
-  } catch (error) {
-    console.error('Failed to book appointment:', error)
-    errorMessage.value = 'Failed to book appointment. Please try again.'
   }
-}
+})
+
+// Watch for doctor changes
+watch(() => props.doctor, (newDoctor) => {
+  if (newDoctor) {
+    form.fields.doctor_id = newDoctor.id.toString()
+  }
+}, { immediate: true })
 
 // Reset form when dialog closes
 watch(() => props.show, (isOpen) => {
@@ -80,6 +58,26 @@ watch(() => props.show, (isOpen) => {
     form.reset()
   }
 })
+
+const submit = () => {
+  errorMessage.value = ''
+  
+  // Validate form
+  if (!form.fields.doctor_id) {
+    errorMessage.value = 'Please select a doctor'
+    return
+  }
+  if (!form.fields.date) {
+    errorMessage.value = 'Please select a date'
+    return
+  }
+  if (!form.fields.time) {
+    errorMessage.value = 'Please select a time'
+    return
+  }
+
+  form.submit()
+}
 </script>
 
 <template>
@@ -106,7 +104,10 @@ watch(() => props.show, (isOpen) => {
             {{ errorMessage }}
           </div>
 
-          <form class="mt-6 space-y-4" @submit.prevent="submit">
+          <form 
+            class="mt-6 space-y-4" 
+            @submit.prevent="submit"
+          >
             <div v-if="!doctor">
               <label class="text-sm text-gray">Select Doctor</label>
               <select 
@@ -119,7 +120,7 @@ watch(() => props.show, (isOpen) => {
                   :key="doctor.id"
                   :value="doctor.id"
                 >
-                  Dr. {{ doctor.user.name }} - {{ doctor.speciality }}
+                  {{ doctor.user.name }} - {{ doctor.speciality }}
                 </option>
               </select>
             </div>

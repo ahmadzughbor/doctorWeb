@@ -14,8 +14,10 @@ class Appointment extends Model
         'patient_id',
         'starts_at',
         'status',
-        'feedback',
-        'rating',
+    ];
+
+    protected $casts = [
+        'starts_at' => 'datetime',
     ];
 
     public function doctor()

@@ -16,10 +16,21 @@ Route::middleware('guest')->group(function () {
 
 // Auth routes
 Route::middleware('auth')->group(function () {
-    Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
-    Route::get('/doctors/{id}', [DoctorController::class, 'show'])->name('doctors.show');
+    // Debug route to check if it's registered
+    Route::get('/debug/routes', function() {
+        dd([
+            'appointments.store' => route('appointments.store'),
+            'current_routes' => Route::getRoutes()->getRoutesByMethod()['POST'] ?? []
+        ]);
+    });
+
+    // Appointments routes
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+    
+    // Doctors routes
+    Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
+    Route::get('/doctors/{id}', [DoctorController::class, 'show'])->name('doctors.show');
 });
 
 Route::delete('/logout', [Security\AuthenticatedSessionController::class, 'destroy'])->name('logout');
