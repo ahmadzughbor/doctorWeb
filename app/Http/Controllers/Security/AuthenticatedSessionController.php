@@ -54,10 +54,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect to login page instead of home page
-        return hybridly('security.login', [
-            'errors' => [],
-            'flash' => ['success' => 'Successfully logged out']
-        ]);
+        // Redirect to home page using standard redirect
+        return redirect('/');
     }
 }

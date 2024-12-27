@@ -4,6 +4,7 @@ use App\Http\Controllers\Marketing;
 use App\Http\Controllers\Security;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes (accessible to everyone)
@@ -32,6 +33,10 @@ Route::middleware('auth')->group(function () {
     // Doctors routes
     Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
     Route::get('/doctors/{id}', [DoctorController::class, 'show'])->name('doctors.show');
+
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::delete('/logout', [Security\AuthenticatedSessionController::class, 'destroy'])->name('logout');
