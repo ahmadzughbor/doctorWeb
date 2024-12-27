@@ -3,96 +3,69 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Enums\Role;
 use App\Models\User;
 use App\Models\Doctor;
 use App\Models\Patient;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Appointment;
+use App\Enums\Role;
+use App\Enums\AppointmentStatus;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
+        // Clear existing data
+        Appointment::query()->delete();
+        Doctor::query()->delete();
+        Patient::query()->delete();
+        User::query()->delete();
+
         // Create admin user
-        $admin = User::create([
+        User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => Role::ADMIN->value,
-            'gender' => 'male',
+            'role' => Role::ADMIN,
         ]);
 
         // Create doctors
-        $doctors = [
-            [
-                'name' => 'Dr. John Smith',
-                'email' => 'john@example.com',
-                'password' => Hash::make('password'),
-                'role' => Role::DOCTOR->value,
-                'gender' => 'male',
-                'speciality' => 'Cardiology',
-                'qualification' => 'MD, Cardiology',
-            ],
-            [
-                'name' => 'Dr. Sarah Johnson',
-                'email' => 'sarah@example.com',
-                'password' => Hash::make('password'),
-                'role' => Role::DOCTOR->value,
-                'gender' => 'female',
-                'speciality' => 'Pediatrics',
-                'qualification' => 'MD, Pediatrics',
-            ]
-        ];
-
-        foreach ($doctors as $doctor) {
-            $user = User::create([
-                'name' => $doctor['name'],
-                'email' => $doctor['email'],
-                'password' => $doctor['password'],
-                'role' => $doctor['role'],
-                'gender' => $doctor['gender'],
+        User::factory(5)
+            ->has(Doctor::factory())
+            ->create([
+                'role' => Role::DOCTOR,
             ]);
-
-            Doctor::create([
-                'user_id' => $user->id,
-                'speciality' => $doctor['speciality'],
-                'qualification' => $doctor['qualification'],
-            ]);
-        }
 
         // Create patients
-        $patients = [
-            [
-                'name' => 'Alice Cooper',
-                'email' => 'alice@example.com',
-                'password' => Hash::make('password'),
-                'role' => Role::PATIENT->value,
-                'gender' => 'female',
-                'medical_history' => 'No major health issues',
-            ],
-            [
-                'name' => 'Bob Wilson',
-                'email' => 'bob@example.com',
-                'password' => Hash::make('password'),
-                'role' => Role::PATIENT->value,
-                'gender' => 'male',
-                'medical_history' => 'Mild asthma',
-            ]
-        ];
+        User::factory(10)
+            ->has(Patient::factory())
+            ->create([
+                'role' => Role::PATIENT,
+            ]);
+
+        // Create appointments
+        $doctors = Doctor::all();
+        $patients = Patient::all();
 
         foreach ($patients as $patient) {
-            $user = User::create([
-                'name' => $patient['name'],
-                'email' => $patient['email'],
-                'password' => $patient['password'],
-                'role' => $patient['role'],
-                'gender' => $patient['gender'],
-            ]);
+            $appointmentCount = rand(1, 3);
+            for ($i = 0; $i < $appointmentCount; $i++) {
+                $starts_at = fake()->dateTimeBetween('-5 days', '+20 days');
+                $is_past = $starts_at < now();
 
-            Patient::create([
-                'user_id' => $user->id,
-                'medical_history' => $patient['medical_history'],
-            ]);
+                // If appointment is in the past, it's either completed or cancelled
+                // If it's in the future, it's scheduled
+                $status = $is_past 
+                    ? fake()->randomElement([AppointmentStatus::COMPLETED->value, AppointmentStatus::CANCELLED->value])
+                    : AppointmentStatus::SCHEDULED->value;
+
+                Appointment::create([
+                    'doctor_id' => $doctors->random()->id,
+                    'patient_id' => $patient->id,
+                    'starts_at' => $starts_at,
+                    'status' => $status,
+                    'feedback' => $status === AppointmentStatus::COMPLETED->value ? fake()->text(200) : null,
+                    'rating' => $status === AppointmentStatus::COMPLETED->value ? fake()->numberBetween(2, 5) : null,
+                ]);
+            }
         }
     }
 }

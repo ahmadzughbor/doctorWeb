@@ -3,17 +3,13 @@
 namespace App\Http\Controllers\Security;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Models\User;
+use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Handles an incoming authentication request.
-     */
     public function store(Request $request)
     {
         $credentials = $request->validate([
@@ -23,29 +19,45 @@ class AuthenticatedSessionController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-
-            return hybridly('index', [
-                'auth' => [
-                    'user' => Auth::user(),
-                ],
-            ]);
+            
+            // Redirect based on user role
+            $user = Auth::user();
+            
+            if ($user->role === Role::PATIENT) {
+                return hybridly('doctors.index', [
+                    'doctors' => \App\Models\Doctor::with('user')->get(),
+                    'auth' => ['user' => $user]
+                ]);
+            } elseif ($user->role === Role::DOCTOR) {
+                // Load the doctor relationship first
+                $user->load('doctor.appointments.patient.user');
+                
+                return hybridly('appointments.index', [
+                    'appointments' => $user->doctor ? $user->doctor->appointments : [],
+                    'is_doctor' => true,
+                    'auth' => ['user' => $user]
+                ]);
+            } elseif ($user->role === Role::ADMIN) {
+                return redirect('/admin');
+            }
         }
 
-        throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
         ]);
     }
 
-    /**
-     * Destroys an authenticated session.
-     */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request)
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Redirect to login page instead of home page
+        return hybridly('security.login', [
+            'errors' => [],
+            'flash' => ['success' => 'Successfully logged out']
+        ]);
     }
 }

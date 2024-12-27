@@ -35,4 +35,24 @@ enum Role: string
             default => throw new \ValueError("Invalid role: {$value}")
         };
     }
+
+    public function toFilamentBadgeColor(): string | array | null
+    {
+        return match($this) {
+            self::ADMIN => 'danger',
+            self::DOCTOR => 'warning',
+            self::PATIENT => 'success',
+            default => 'gray'
+        };
+    }
+
+    public function toLabel(): string
+    {
+        return match($this) {
+            self::ADMIN => 'Admin',
+            self::DOCTOR => 'Doctor',
+            self::PATIENT => 'Patient',
+            default => 'Unknown'
+        };
+    }
 }

@@ -12,7 +12,13 @@
 				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Exercitationem cumque accusamus quasi iste sequi ex necessitatibus aliquid debitis dolore facere nam doloremque voluptate cum, minus ducimus illum et, dolores ad.
 				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Exercitationem cumque accusamus quasi iste sequi ex necessitatibus aliquid debitis dolore facere nam doloremque voluptate cum, minus ducimus illum et, dolores ad.
 			</p>
-			<base-button as="link" link-type="a" variant="secondary" class="mt-6 inline-flex" href="/admin">
+			<base-button 
+				as="link" 
+				link-type="a" 
+				variant="secondary" 
+				class="mt-6 inline-flex" 
+				:href="route('doctors.index')"
+			>
 				Reach out to your doctors
 			</base-button>
 		</base-container>

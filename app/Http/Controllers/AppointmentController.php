@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Doctor;
 use App\Models\Appointment;
 use App\Enums\Role;
+use App\Enums\AppointmentStatus;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -16,10 +17,20 @@ class AppointmentController extends Controller
         $availableDoctors = [];
 
         if ($user->role === Role::DOCTOR) {
-            $appointments = Appointment::with(['patient.user'])
-                ->where('doctor_id', $user->doctor->id)
-                ->get();
-        } else {
+            // Load doctor relationship if not loaded
+            $user->load('doctor');
+            
+            if ($user->doctor) {
+                $appointments = Appointment::with(['patient.user'])
+                    ->where('doctor_id', $user->doctor->id)
+                    ->get();
+            }
+        } elseif ($user->role === Role::PATIENT) {
+            // Create patient record if it doesn't exist
+            if (!$user->patient) {
+                $user->patient()->create([]);
+            }
+
             $appointments = Appointment::with(['doctor.user'])
                 ->where('patient_id', $user->patient->id)
                 ->get();
@@ -56,7 +67,7 @@ class AppointmentController extends Controller
                 'doctor_id' => $validated['doctor_id'],
                 'patient_id' => auth()->user()->patient->id,
                 'starts_at' => $startsAt,
-                'status' => 'scheduled',
+                'status' => AppointmentStatus::SCHEDULED,
             ]);
 
             // Return Hybridly response

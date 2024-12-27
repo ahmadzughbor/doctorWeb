@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Doctor;
 use App\Models\Patient;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Enums\AppointmentStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Appointment>
@@ -17,19 +18,21 @@ class AppointmentFactory extends Factory
         $patient = Patient::inRandomOrder()->first();
 
         $starts_at = fake()->dateTimeBetween('-5 days', '+20 days');
+        $is_past = $starts_at < now();
 
-        $is_finished = $starts_at > now();
-
-        $status = $is_finished ? 'finished' : fake()->randomElement(['canceled', 'pending']);
+        // If appointment is in the past, it's either completed or cancelled
+        // If it's in the future, it's scheduled
+        $status = $is_past 
+            ? fake()->randomElement([AppointmentStatus::COMPLETED->value, AppointmentStatus::CANCELLED->value])
+            : AppointmentStatus::SCHEDULED->value;
 
         return [
             'doctor_id' => $doctor->id,
             'patient_id' => $patient->id,
             'starts_at' => $starts_at,
-            'finishes_at' => $is_finished ? fake()->dateTimeBetween('-5 days', 'now') : null,
             'status' => $status,
-            'feedback' => $status === 'pending' ? null : fake()->text(200),
-            'rating' => $is_finished ? fake()->numberBetween(2, 5) : null,
+            'feedback' => $status === AppointmentStatus::COMPLETED->value ? fake()->text(200) : null,
+            'rating' => $status === AppointmentStatus::COMPLETED->value ? fake()->numberBetween(2, 5) : null,
         ];
     }
 }

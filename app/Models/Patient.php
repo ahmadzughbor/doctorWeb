@@ -4,27 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @mixin IdeHelperPatient
- */
 class Patient extends Model
 {
     use HasFactory;
 
-    protected $with = [
-        'user',
-        'appointments',
-    ];
+    protected $guarded = [];  // Allow mass assignment for all fields
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function appointments(): HasMany
+    public function appointments()
     {
         return $this->hasMany(Appointment::class);
     }

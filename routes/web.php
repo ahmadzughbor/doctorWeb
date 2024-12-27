@@ -6,15 +6,16 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
+// Public routes (accessible to everyone)
 Route::get('/', Marketing\ShowIndexController::class)->name('index');
 
-// Guest routes
+// Guest routes (only for non-authenticated users)
 Route::middleware('guest')->group(function () {
     Route::post('/register', [Security\RegisteredUserController::class, 'store'])->name('register.store');
     Route::post('/login', [Security\AuthenticatedSessionController::class, 'store'])->name('login.store');
 });
 
-// Auth routes
+// Auth routes (only for authenticated users)
 Route::middleware('auth')->group(function () {
     // Debug route to check if it's registered
     Route::get('/debug/routes', function() {
