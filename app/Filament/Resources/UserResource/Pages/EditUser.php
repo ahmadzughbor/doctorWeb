@@ -27,20 +27,33 @@ class EditUser extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         $role = $record->role;
-        $userData = array_diff_key($data, ['medical_history' => '', 'speciality' => '', 'qualification' => '']);
+        
+        // Update user data
+        $userData = array_diff_key($data, [
+            'medical_history' => '', 
+            'allergies' => '',
+            'current_medications' => '',
+            'speciality' => '', 
+            'qualification' => ''
+        ]);
         $record->update($userData);
 
+        // Update patient data
         if ($role === Role::PATIENT) {
-            dd('PATIENT');
-            Patient::where('user_id', $record->id)->update([
-                'medical_history' => $data['medical_history'],
+            $patient = Patient::firstOrCreate(['user_id' => $record->id]);
+            $patient->update([
+                'medical_history' => $data['medical_history'] ?? null,
+                'allergies' => $data['allergies'] ?? null,
+                'current_medications' => $data['current_medications'] ?? null,
             ]);
         }
 
+        // Update doctor data
         if ($role === Role::DOCTOR) {
-            Doctor::where('user_id', $record->id)->update([
-                'speciality' => $data['speciality'],
-                'qualification' => $data['qualification'],
+            $doctor = Doctor::firstOrCreate(['user_id' => $record->id]);
+            $doctor->update([
+                'speciality' => $data['speciality'] ?? null,
+                'qualification' => $data['qualification'] ?? null,
             ]);
         }
 
