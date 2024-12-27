@@ -1,127 +1,110 @@
 <script setup lang="ts">
 const currentRoute = useProperty('security.current_route')
 const isAuthenticated = useProperty('security.is_authenticated')
+const user = useProperty('auth.user')
 
-const isScrollingDown = ref(false)
-const prevScroll = ref(0)
+// Debug logs
+console.log('Current route:', currentRoute.value)
+console.log('Auth status:', isAuthenticated.value)
+console.log('Current user:', user.value)
+console.log('User role:', user.value?.role)
 
-const open = ref(false)
-const isLocked = useScrollLock(document.body)
+const isAdmin = computed(() => user.value?.role === 'admin')
+const isDoctor = computed(() => user.value?.role === 'doctor')
+const isPatient = computed(() => user.value?.role === 'patient')
 
-watch(open, (val) => {
-	isLocked.value = val
-})
+// For debugging
+watch(user, (newValue) => {
+  console.log('User changed:', newValue)
+  console.log('Is patient?', isPatient.value)
+}, { immediate: true })
 
-useEventListener('scroll', () => {
-	if (currentRoute.value !== 'index') {
-		return
-	}
-
-	const isScrolling = window.scrollY > 0
-	isScrollingDown.value = isScrolling && window.scrollY > prevScroll.value
-	prevScroll.value = window.scrollY
-})
-
-registerHook('navigated', () => open.value = false)
+const showAppointments = computed(() => isPatient.value || isDoctor.value)
 
 const showRegisterDialog = ref(false)
 const showLoginDialog = ref(false)
+
+const logout = () => {
+	router.delete(route('logout'))
+}
 </script>
 
 <template>
-	<header
-		id="header"
-		class="fixed inset-x-0 top-0 z-40 bg-white/50 backdrop-blur-xl transition-all duration-300"
-		:class="{
-			'-top-20': isScrollingDown,
-		}"
-	>
-		<base-container as="div" class="relative z-30" :fluid="true">
-			<div class="-mx-2 flex items-center justify-between py-3 lg:mx-0 lg:py-2">
+	<header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+		<nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
+			<div class="flex h-16 items-center justify-between">
 				<div class="flex items-center">
-					<!-- Logo link -->
-					<router-link href="/" class="flex items-center gap-x-2 text-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-dark">
-						<svg class="h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path d="M20 6H16V4C16 2.9 15.1 2 14 2H10C8.9 2 8 2.9 8 4V6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H20C21.1 22 22 21.1 22 20V8C22 6.9 21.1 6 20 6ZM10 4H14V6H10V4ZM16 15H13V18H11V15H8V13H11V10H13V13H16V15Z" fill="#2DD4BF" />
-						</svg>
-						<p>Doctor<span class="text-teal-500">Web</span></p>
+					<router-link href="/" class="text-2xl font-bold text-blue">
+						MedBook
 					</router-link>
 				</div>
 
-				<register-dialog :show="showRegisterDialog" @close="showRegisterDialog = false" />
-				<login-dialog :show="showLoginDialog" @close="showLoginDialog = false" />
+				<div class="ml-10 flex items-center space-x-4">
+					<div v-if="isAuthenticated" class="flex items-center gap-4">
+						<template v-if="isPatient">
+							<router-link
+								href="/doctors"
+								class="text-gray hover:text-gray-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gray"
+							>
+								Find Doctors
+							</router-link>
+							
+							<router-link
+								href="/appointments"
+								class="text-gray hover:text-gray-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gray"
+							>
+								My Appointments
+							</router-link>
+						</template>
 
-				<div class="hidden lg:block">
-					<a
-						v-if="isAuthenticated"
-						href="/admin"
-						class="text-gray hover:text-gray-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gray"
-					>
-						Dashbaord
-					</a>
-					<div v-else class="flex items-center gap-4">
-						<base-button as="button" variant="plain" class="!font-sans" @click="showLoginDialog = true">
-							<i-custom-user-circle class="mr-1.5 h-6 w-6 text-orange" />
-							Login
-						</base-button>
+						<template v-if="isDoctor">
+							<router-link
+								href="/appointments"
+								class="text-gray hover:text-gray-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gray"
+							>
+								My Schedule
+							</router-link>
+						</template>
 
-						<base-button as="button" variant="secondary" @click="showRegisterDialog = true">
-							Register
-						</base-button>
-					</div>
-				</div>
-
-				<!-- Mobile menu button -->
-				<div class="lg:hidden">
-					<button
-						type="button"
-						class="relative -m-1 flex items-center justify-center p-1 text-gray hover:text-gray-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-dark"
-						@click="open = !open"
-					>
-						<i-custom-vertical-three-dots class="absolute h-5 shrink-0 transition-transform duration-200" :class="{ 'rotate-45':open }" />
-						<i-custom-vertical-two-dots class="h-5 shrink-0 transition-transform duration-200" :class="{ '-rotate-45':open }" />
-					</button>
-				</div>
-			</div>
-		</base-container>
-
-		<!-- Mobile menu -->
-		<transition
-			enter-active-class="ease-linear duration-200"
-			enter-from-class="-translate-y-full"
-			enter-to-class="opacity-100 scale-100"
-			leave-active-class="ease-linear duration-200"
-			leave-from-class="opacity-100 scale-100"
-			leave-to-class="-translate-y-full"
-		>
-			<div v-if="open" class="fixed inset-0 z-20 h-screen bg-blue-lighter pt-16 transition-all lg:hidden">
-				<div class="flex h-full flex-col justify-between">
-					<div class="flex flex-col border-t border-blue">
-						<router-link
-							href="/#reach"
-							class="border-b border-blue px-4 py-5 text-gray transition-colors duration-100 focus-within:ring-gray-dark hover:text-gray-light focus:outline-none focus-visible:ring-2"
+						<base-button 
+							as="button" 
+							variant="plain" 
+							class="!font-sans text-gray hover:text-gray-light" 
+							@click="logout"
 						>
-							Reach out to your doctors
-						</router-link>
-					</div>
-
-					<div v-if="isAuthenticated">
-						<base-button variant="secondary" as="link" link-type="a" href="/admin">
-							Dashbaord
+							Logout
 						</base-button>
 					</div>
-					<div v-else class="flex gap-x-11 p-4">
-						<base-button as="button" variant="plain" class="flex-1 bg-white !font-sans hover:bg-white/80" @click="showLoginDialog = true">
-							<i-custom-user-circle class="mr-1.5 h-6 w-6 text-orange" />
+
+					<div v-else class="flex items-center gap-4">
+						<base-button 
+							as="button" 
+							variant="plain" 
+							class="!font-sans" 
+							@click="showLoginDialog = true"
+						>
 							Login
 						</base-button>
-
-						<base-button as="button" variant="secondary" class="flex-1" @click="showRegisterDialog = true">
+						<base-button 
+							as="button" 
+							variant="primary" 
+							class="!font-sans" 
+							@click="showRegisterDialog = true"
+						>
 							Register
 						</base-button>
 					</div>
 				</div>
 			</div>
-		</transition>
+		</nav>
+
+		<register-dialog 
+			:show="showRegisterDialog" 
+			@close="showRegisterDialog = false" 
+		/>
+		<login-dialog 
+			:show="showLoginDialog" 
+			@close="showLoginDialog = false" 
+		/>
 	</header>
 </template>

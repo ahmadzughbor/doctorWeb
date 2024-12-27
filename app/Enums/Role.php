@@ -2,19 +2,20 @@
 
 namespace App\Enums;
 
-use App\Support\Traits\AsOptions;
-use App\Support\Traits\ExposesValues;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
-
-#[TypeScript]
 enum Role: string
 {
-    use AsOptions;
-    use ExposesValues;
-
     case ADMIN = 'admin';
     case DOCTOR = 'doctor';
     case PATIENT = 'patient';
+
+    public static function options(): array
+    {
+        return [
+            self::ADMIN->value => 'Admin',
+            self::DOCTOR->value => 'Doctor',
+            self::PATIENT->value => 'Patient',
+        ];
+    }
 
     public function toHumanReadableString(): string
     {
@@ -25,12 +26,13 @@ enum Role: string
         };
     }
 
-    public function toFilamentBadgeColor(): string
+    public static function fromString(string $value): self
     {
-        return match ($this) {
-            self::ADMIN => 'secondary',
-            self::DOCTOR => 'success',
-            self::PATIENT => 'primary',
+        return match ($value) {
+            'admin' => self::ADMIN,
+            'doctor' => self::DOCTOR,
+            'patient' => self::PATIENT,
+            default => throw new \ValueError("Invalid role: {$value}")
         };
     }
 }

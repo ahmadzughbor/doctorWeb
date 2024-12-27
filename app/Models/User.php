@@ -26,9 +26,14 @@ class User extends Authenticatable implements FilamentUser
     ];
 
     protected $casts = [
-        'role' => Role::class,
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
+
+    public function getRoleAttribute($value): Role
+    {
+        return Role::from($value);
+    }
 
     public function canAccessFilament(): bool
     {
