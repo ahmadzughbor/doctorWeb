@@ -30,7 +30,7 @@ class AppointmentController extends Controller
             if (!$user->patient) {
                 $user->patient()->create([]);
             }
-
+            
             $appointments = Appointment::with(['doctor.user'])
                 ->where('patient_id', $user->patient->id)
                 ->get();

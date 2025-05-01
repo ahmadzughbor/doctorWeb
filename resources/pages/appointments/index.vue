@@ -33,55 +33,45 @@ const handleBooking = () => {
             {{ isDoctor ? 'View your upcoming appointments' : 'View and manage your appointments' }}
           </p>
         </div>
-        
+
         <!-- Show booking button only for patients -->
-        <base-button 
-          v-if="!isDoctor"
-          variant="primary"
-          @click="handleBooking"
-        >
+        <base-button v-if="!isDoctor" variant="primary" @click="handleBooking">
           Book Appointment
         </base-button>
       </div>
 
       <!-- Appointments List -->
       <div class="space-y-4">
-        <div 
-          v-for="appointment in appointments" 
-          :key="appointment.id"
-          class="rounded-lg border border-ocre-lightest bg-white p-6"
-        >
+        <div v-for="appointment in appointments" :key="appointment.id"
+          class="rounded-lg border border-ocre-lightest bg-white p-6">
           <div class="flex items-start justify-between">
             <div>
               <h3 class="font-medium text-gray">
-                {{ appointment.doctor.user.name }}
+                {{ isDoctor ? appointment.patient?.user?.name : appointment.doctor?.user?.name }}
               </h3>
               <p class="mt-1 text-sm text-gray-light">
-                {{ appointment.doctor.speciality }}
+                {{ isDoctor ? appointment.patient?.speciality : appointment.doctor?.speciality }}
               </p>
+
               <p class="mt-2 text-sm text-gray">
                 {{ new Date(appointment.starts_at).toLocaleString() }}
               </p>
             </div>
-            <span 
-              class="rounded-full px-3 py-1 text-sm"
-              :class="{
-                'bg-blue-lightest text-blue': appointment.status === 'scheduled',
-                'bg-green-100 text-green-800': appointment.status === 'completed',
-                'bg-red-100 text-red-800': appointment.status === 'cancelled'
-              }"
-            >
+            <span class="rounded-full px-3 py-1 text-sm" :class="{
+              'bg-blue-lightest text-blue': appointment.status === 'scheduled',
+              'bg-green-100 text-green-800': appointment.status === 'completed',
+              'bg-red-100 text-red-800': appointment.status === 'cancelled'
+            }">
               {{ appointment.status }}
             </span>
           </div>
         </div>
       </div>
 
+
       <!-- Empty State -->
-      <div 
-        v-if="appointments.length === 0"
-        class="flex flex-col items-center justify-center rounded-lg border border-ocre-lightest bg-white py-12"
-      >
+      <div v-if="appointments?.length === 0"
+        class="flex flex-col items-center justify-center rounded-lg border border-ocre-lightest bg-white py-12">
         <i-heroicons-calendar class="h-12 w-12 text-gray-light" />
         <h3 class="mt-4 text-lg font-medium text-gray">
           No appointments yet
@@ -93,9 +83,6 @@ const handleBooking = () => {
     </base-container>
 
     <!-- Booking Dialog -->
-    <book-appointment-dialog 
-      :show="showBookingDialog"
-      @close="showBookingDialog = false"
-    />
+    <book-appointment-dialog :show="showBookingDialog" @close="showBookingDialog = false" />
   </div>
-</template> 
+</template>

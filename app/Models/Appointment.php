@@ -6,6 +6,9 @@ use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperAppointment
+ */
 class Appointment extends Model
 {
     use HasFactory;
@@ -16,7 +19,7 @@ class Appointment extends Model
         'starts_at',
         'status',
     ];
-
+   
     protected $casts = [
         'starts_at' => 'datetime',
         'status' => AppointmentStatus::class

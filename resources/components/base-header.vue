@@ -30,7 +30,7 @@ const logout = async () => {
 			<div class="flex h-16 items-center justify-between">
 				<div class="flex items-center">
 					<router-link href="/" class="text-2xl font-bold text-blue">
-						MedBook
+						DoctorWeb
 					</router-link>
 				</div>
 
